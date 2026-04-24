@@ -1,23 +1,30 @@
-### Analysing the balance of multiple nutrients within a single food (entropy / diversity)
 
-If for one food item you convert the amounts of different nutrients (e.g., grams of carbohydrates, fat, protein) into proportions \(p_i\) that sum to 1 (by mass or by energy), the Shannon entropy is
+## 1. Shannon Entropy ($H$)
+This measures the nutritional diversity or "evenness" of a food item. A higher entropy indicates a more balanced distribution of nutrients, while a lower entropy indicates a food dominated by a single macronutrient (like pure sugar or oil).
+$$H = -\sum_{i=1}^k p_i \log(p_i)$$ 
 
-\[
-H = -\sum_{i=1}^k p_i \log p_i.
-\]
+* $k$: The number of nutrient categories (e.g., Protein, Carbs, Fat).
+* $p_i$: The proportion of the $i$-th nutrient (where $\sum p_i = 1$).
+* Interpretation: Entropy is maximized when $p_1 = p_2 = \dots = p_k$. [1, 2] 
 
-Here the basic element is \(p \log p\) – the same mathematical shape. Entropy is highest when all nutrients are equally represented (most “balanced” profile), and lowest when one nutrient dominates.
+------------------------------
 
-If you want to compare a food’s nutrient profile to a reference profile (say, an ideal diet), you can use the **Kullback–Leibler divergence**:
+## Kullback–Leibler Divergence ($D_{KL}$)
+Also known as "Relative Entropy," this measures how much a specific food's nutrient profile ($p$) diverges from a target or "ideal" reference profile ($r$).
+$$D_{KL}(p \parallel r) = \sum_{i=1}^k p_i \log\left(\frac{p_i}{r_i}\right)$$ 
+Alternatively, it can be expanded as:
+$$D_{KL}(p \parallel r) = \sum_i p_i \log(p_i) - \sum_i p_i \log(r_i)$$ 
 
-\[
-D_{KL}(p \| r) = \sum_i p_i \log\frac{p_i}{r_i}
-   = \sum_i p_i \log p_i - \sum_i p_i \log r_i,
-\]
+* $p$: The actual nutrient distribution of the food.
+* $r$: The reference distribution (e.g., RDA guidelines).
+* Interpretation: A value of 0 means the food perfectly matches the ideal diet. Larger values indicate a greater "distance" from the nutritional goal.
 
-which also relies entirely on \(p \log p\) and \(p \log r\) terms. This tells you how much the actual nutrient distribution diverges from the target.
+------------------------------
 
-**Practical example**  
-A meal with 10 % energy from protein, 30 % from fat, and 60 % from carbohydrates has a certain entropy. Replacing some carbs with protein would increase or decrease the balance depending on your goal. A dietitian can quantify “nutritional diversity” with these entropy measures, all of which are built on \(x \log x\).
+## Key Mathematical Insights
 
----
+* The Core Term: Both formulas rely on the $x \log x$ function.
+* Units: If you use $\log_2$, the entropy is measured in bits. If you use the natural log ($\ln$), it is measured in nats.
+* Sensitivity: KL Divergence is particularly sensitive to nutrients that are missing in the food ($p_i > 0$) but required in the diet ($r_i > 0$).
+
+------------------------------
