@@ -28,6 +28,6 @@ $$D_{KL}(p \parallel r) = \sum_i p_i \log(p_i) - \sum_i p_i \log(r_i)$$
 * Sensitivity: KL Divergence is particularly sensitive to nutrients that are missing in the food ($p_i > 0$) but required in the diet ($r_i > 0$).
 
 ------------------------------
-**Practical example**  
+Practical example
 A meal with 10 % energy from protein, 30 % from fat, and 60 % from carbohydrates has a certain entropy. Replacing some carbs with protein would increase or decrease the balance depending on your goal. A dietitian can quantify “nutritional diversity” with these entropy measures, all of which are built on \(x \log x\).
 ------------------------------
