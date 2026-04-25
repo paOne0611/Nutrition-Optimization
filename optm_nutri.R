@@ -2,9 +2,9 @@ library(tidyr)
 library(readxl)
 library(dplyr)
 
-indb <- read_excel("C:/Users/paone/OneDrive/Desktop/G22_DA/Anuvaad_INDB_2024.11.xlsx")
-tul <- read.csv("C:/Users/paone/OneDrive/Desktop/G22_DA/TUL.csv")
-rda <- read.csv("C:/Users/paone/OneDrive/Desktop/G22_DA/RDA1.csv")
+indb <- read_excel("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/Anuvaad_INDB_2024.11.csv")
+tul <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/TUL.csv")
+rda <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/RDA1.csv")
 ear <- read.csv("C:/Users/paone/OneDrive/Desktop/G22_DA/ear.csv")
 
 pattern_drinks <- "coffee|tea|squash|thandai|milk|lemonade|fruit punch (with squashes)|lem-o-gin|milkshake|lassi|juice|sharbat|cooler|panna|sorbet|smoothie|egg nog|water|hot chocolate|drink|sherbet|cocoa|kanji|canjee"
