@@ -24,7 +24,6 @@ $$D_{KL}(p \parallel r) = \sum_i p_i \log(p_i) - \sum_i p_i \log(r_i)$$
 ## Key Mathematical Insights
 
 * The Core Term: Both formulas rely on the $x \log x$ function.
-* Units: If you use $\log_2$, the entropy is measured in bits. If you use the natural log ($\ln$), it is measured in nats.
 * Sensitivity: KL Divergence is particularly sensitive to nutrients that are missing in the food ($p_i > 0$) but required in the diet ($r_i > 0$).
 
 ------------------------------
