@@ -1,5 +1,5 @@
 
-## 1. Shannon Entropy ($H$)
+## Shannon Entropy ($H$)
 This measures the nutritional diversity or "evenness" of a food item. A higher entropy indicates a more balanced distribution of nutrients, while a lower entropy indicates a food dominated by a single macronutrient (like pure sugar or oil).
 $$H = -\sum_{i=1}^k p_i \log(p_i)$$ 
 
