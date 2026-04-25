@@ -28,6 +28,22 @@ $$D_{KL}(p \parallel r) = \sum_i p_i \log(p_i) - \sum_i p_i \log(r_i)$$
 * Sensitivity: KL Divergence is particularly sensitive to nutrients that are missing in the food ($p_i > 0$) but required in the diet ($r_i > 0$).
 
 ------------------------------
-Practical example
-A meal with 10 % energy from protein, 30 % from fat, and 60 % from carbohydrates has a certain entropy. Replacing some carbs with protein would increase or decrease the balance depending on your goal. A dietitian can quantify “nutritional diversity” with these entropy measures, all of which are built on \(x \log x\).
+### Practical Example
+
+Consider a meal with the following energy distribution:
+
+- **Protein:** 10%  
+- **Fat:** 30%  
+- **Carbohydrates:** 60%  
+
+This distribution has a certain entropy value representing its nutritional balance.
+
+If we modify the meal (for example, by replacing carbohydrates with protein), the entropy changes. Whether this change is desirable depends on the target nutritional profile.
+
+#### Insight  
+
+  Measures like **Kullback–Leibler divergence** quantify how far a meal deviates from an ideal diet.  
+These concepts are fundamentally based on **$x \log(x)$**.
+
+
 ------------------------------
