@@ -1,6 +1,5 @@
 library(tidyr)
 library(readxl)
-library(dplyr)
 
 indb <- read_excel("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/Anuvaad_INDB_2024.11.csv")
 tul <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/TUL.csv")
