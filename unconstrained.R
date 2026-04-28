@@ -19,7 +19,7 @@ snacks_item <- sample_prop %>%
 consumed <- rbind(breakfast_item, snacks_item, dinner_item)
 
 n=1
-r1 <- abs(rda_prop[1,5:13] - colSums(consumed[,2:10]))
+r1 <- abs(rda_prop[1,5:13] - colMeans(consumed[,2:10]))
 rownames(r1) <- NULL
 #r2 <- r1 / rowSums(r1)
 
