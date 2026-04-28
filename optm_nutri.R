@@ -116,44 +116,78 @@ sample[,11:14] <- apply(sample[,11:14], 2, function(col){
   return(col)
 })
 
+
+##mg to g: 4,5,6,7,8,10
+tul[,3:12]= apply(tul[,3:12],
+                  2,
+                  as.numeric)
+tul[,c(4:8, 10)] <- tul[,c(4:8, 10)] * (1e-3)
+#ug to g
+tul[,c(9,11)] <- tul[,c(9,11)] * (1e-6)
+#iu to g
+tul$vit_d= tul$vit_d* (1/40) * (1e-6)
+tul=tul[1:6,]
+
 sample <- sample[-707,]
-
-breakfast_item <- sample %>% 
-  filter(breakfast == 1) %>% 
-  sample_n(2, replace = FALSE)
-
-dinner_item <- sample %>% 
-  filter(dinner == 1) %>% 
-  sample_n(2, replace = FALSE)
-
-lunch <- sample %>% 
-  filter(lunch == 1) 
-
-snacks_item <- sample %>% 
-  filter(snacks == 1) %>% 
-  sample_n(10, replace = FALSE)
-
-consumed <- rbind(breakfast_item, snacks_item, dinner_item)
 
 rda_prop <- data.frame()
 rda_prop <- rbind(rda_prop, rda_sub[, 4:12] / rowSums(rda_sub[,4:12])) |> as.data.frame()
 rda_prop <- rda_prop[1:6,]
 rda_prop <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], rda_prop)
 
-r1 <- abs(rda_prop[2,5:13] - colSums(consumed[,2:10]))
-rownames(r1) <- NULL
-r2 <- r1 / rowSums(r1)
-
 sample_prop <- data.frame()
 sample_prop <- rbind(sample_prop, sample[1:1013, 2:10] / rowSums(sample[1:1013,2:10])) |> as.data.frame()
+sample_prop<- cbind(food= sample$food_name, sample_prop, sample[,11:14])
 
-obj_val <- data.frame()
-sub_logi <- sample$lunch == 1
-obj_val <- apply(sample_prop[sub_logi,], 1, function(row) {
-  rowSums(row * log(row / r2)) |>
+#Mij= TULj/rowSum(sample)
+#Nij= EARj/rowSum(sample)
+mij= tul[,4:12]/rowSums(sample[,2:10])
+mij <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], mij)
+#rowSums(sample[,2:10]) is the sum of weights of the 9 nutri in the i'th food item
+nij= ear_sub[1:6,4:12]/rowSums(sample[,2:10])
+nij <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], nij)
+
+loc=""   ##give location where you want to save the .RData file in your deviice containing the objects
+save(mij, nij, sample, indb, sample_prop, rda_sub, rda_prop, ear_sub, tul, indb,
+     file=loc)
+
+breakfast_item <- sample_prop %>% 
+  filter(breakfast == 1) %>% 
+  sample_n(1, replace = FALSE)
+
+dinner_item <- sample_prop %>% 
+  filter(dinner == 1) %>% 
+  sample_n(1, replace = FALSE)
+
+lunch <- sample_prop %>% 
+  filter(lunch == 1) 
+
+snacks_item <- sample_prop %>% 
+  filter(snacks == 1) %>% 
+  sample_n(1, replace = FALSE)
+##what sample to take such that all the constraints are satisfies
+consumed <- rbind(breakfast_item, snacks_item, dinner_item)
+
+n=1
+r1 <- abs(rda_prop[1,5:13] - colSums(consumed[,2:10]))
+rownames(r1) <- NULL
+#r2 <- r1 / rowSums(r1)
+
+#obj_val <- data.frame()
+#sub_logi <- sample$lunch == 1
+obj_val <- apply(lunch[, 2:10], 1, function(row) {
+  rowSums(row * log(row / r1) - row + r1) |>
     rbind()
 }) |> as.matrix()
 obj_val <- cbind(food_name = sample[sub_logi,1], obj_val) |> as.data.frame()
 obj_val$V2 <- as.numeric(obj_val$V2)
 names(obj_val)[2] <- "val"
-head(obj_val[order(obj_val$val),], 8)
+x=head(obj_val[order(obj_val$val),], 10)
+y= sample_prop$food %in% x$food_name
+a= sample[y,]  ##nutrients of consumed items in g
+y= sample_prop$food %in% consumed$food
+b= sample[y,]  ##nutrients of low obj. val items in grams
+rda_sub[n,]
+##ear_sub have all values in grams
+b[1,2:10]+ colSums(a[,2:10])
+
