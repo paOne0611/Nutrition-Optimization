@@ -5,7 +5,7 @@ $$H = -\sum_{i=1}^k p_i \log(p_i)$$
 
 * $k$: The number of nutrient categories (e.g., Protein, Carbs, Fat).
 * $p_i$: The proportion of the $i$-th nutrient (where $\sum p_i = 1$).
-* Interpretation: Entropy is maximized when $p_1 = p_2 = \dots = p_k$. [1, 2] 
+* Interpretation: Entropy is maximized when $p_1 = p_2 = \dots = p_k$.
 
 ------------------------------
 
