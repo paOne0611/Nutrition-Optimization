@@ -1,3 +1,5 @@
+loc=""  ##give location where saved the .RData file in your device containing the objects
+load(loc)
 
 breakfast_item <- sample_prop %>% 
   filter(breakfast == 1) %>% 
