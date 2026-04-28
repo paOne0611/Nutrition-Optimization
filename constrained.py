@@ -3,7 +3,8 @@ import cvxpy as cp
 import pandas as pd
 import numpy as np
 
-x= pyreadr.read_r("C:/Users/paone/OneDrive/Desktop/G22_DA/cvx.RData")
+loc=""   ##give location where you want to save the .RData file in your deviice containing the objects
+x= pyreadr.read_r(loc)
 x.keys()
 
 ###nutrients in proportions for 100g lunch given the consumed items
