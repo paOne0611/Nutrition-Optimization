@@ -3,7 +3,7 @@ import cvxpy as cp
 import pandas as pd
 import numpy as np
 
-loc=""   ##give location where you want to save the .RData file in your deviice containing the objects
+loc=""   ##give location where saved the .RData file in your device containing the objects
 x= pyreadr.read_r(loc)
 x.keys()
 
