@@ -1,3 +1,5 @@
+library(dplyr)
+
 loc=""  ##give location where saved the .RData file in your device containing the objects
 load(loc)
 
