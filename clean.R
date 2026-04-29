@@ -1,7 +1,7 @@
 library(tidyr)
 library(readxl)
 
-indb <- read_excel("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/Anuvaad_INDB_2024.11.csv")
+indb <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/Anuvaad_INDB_2024.11.csv")
 tul <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/TUL.csv")
 rda <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/RDA1.csv")
 ear <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/ear.csv")
