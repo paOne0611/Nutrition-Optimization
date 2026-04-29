@@ -1,4 +1,3 @@
-library(tidyr)
 library(readxl)
 
 indb <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/Anuvaad_INDB_2024.11.csv")
