@@ -140,11 +140,11 @@ sample_prop<- cbind(food= sample$food_name, sample_prop, sample[,11:14])
 
 #Mij= TULj/rowSum(sample)
 #Nij= EARj/rowSum(sample)
-mij= tul[,4:12]/rowSums(sample[,2:10])
-mij <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], mij)
+mi= tul[,4:12]
+mi <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], mij)
 #rowSums(sample[,2:10]) is the sum of weights of the 9 nutri in the i'th food item
-nij= ear_sub[1:6,4:12]/rowSums(sample[,2:10])
-nij <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], nij)
+ni= ear_sub[1:6,4:12]
+ni <- cbind(rda[1:6,1:3], physical_activity=temp[1:6], nij)
 
 loc=""   ##give location where you want to save the .RData file in your deviice containing the objects
 save(mij, nij, sample, indb, sample_prop, rda_sub, rda_prop, ear_sub, tul, indb,
