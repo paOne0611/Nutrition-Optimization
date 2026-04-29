@@ -10,8 +10,8 @@ x.keys()
 ###nutrients in proportions for 100g lunch given the consumed items
 data=x['sample_prop']
 
-mij=x['mij']
-nij=x['nij']
+mi=x['mij']
+ni=x['nij']
 rda_prop= x['rda_prop']
 #print(data.count())
 #print(data.shape)
