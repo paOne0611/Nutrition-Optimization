@@ -32,6 +32,8 @@ consumed = pd.concat(
 
 consumed_prop = consumed.iloc[:, 1:10].mean()
 
+r1= abs(pd.to_numeric(rda_prop[body, 3:] - consumed_prop)).to_numpy()
+r1= r1/sum(r1)
 m = abs(pd.to_numeric(tul_prop- consumed_prop)).to_numpy()
 m= m/m.sum()
 n = abs(pd.to_numeric(ear_prop - consumed_prop)).to_numpy()
