@@ -37,22 +37,27 @@ consumed = pd.concat(
 
 consumed_prop = consumed.iloc[:, 1:10].mean()
 r1 = abs(rda_prop.iloc[0, 4:13] - consumed_prop)
-
+m1= abs(m- consumed_prop)
+n1= ab(n_fixed- consumed_prop)
 #r1 = np.abs(rda_prop.iloc[0, 4:13] - consumed.iloc[:, 1:10].sum())
 
 
 var = cp.Variable(9)
 obj = cp.Minimize(cp.sum(cp.kl_div(var, r1))) #(KL Divergence to reference r)
 cons = [
-    var <= m, 
-    var >= n_fixed,
+    var <= m1, 
+    var >= n1,
     cp.sum(var)==1
 ]
 
 prob = cp.Problem(obj, cons)
 prob.solve()
 
+x['rda_sub'].iloc[body,:]
+rda_prop.iloc[body,3]
+consumed.iloc[:,0]
 print("Status:", prob.status)
 if prob.status == 'optimal':
     print("Optimal Nutrients:\n", var.value)
+)
 
