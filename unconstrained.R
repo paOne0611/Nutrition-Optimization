@@ -41,9 +41,7 @@ y= sample_prop$food %in% consumed$food
 b= sample[y,]  ##nutrients of consumed items in grams
 
 rda_sub[n,]  ##rda values in grams
-rda_prop[n,4] ##physcial activity
-consumed[,1:6] ##in proportions
+rda_prop[n,4]
+consumed[,1] ##in proportions
 x[1:5,] ##bottom 5 objective values
-a[1:5,1:7] ##corresponding bottom 5 food items' nutrient portfolio
 colSums(b[,2:10])+ (a[1,2:10])  ##final nutrient intake in grams
-
