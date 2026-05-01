@@ -39,11 +39,11 @@ y= sample_prop$food %in% x$food_name
 a= sample[y,]  ##nutrients of low obj_val items in g
 y= sample_prop$food %in% consumed$food
 b= sample[y,]  ##nutrients of consumed items in grams
-##ear_sub have all values in grams
 
-consumed[,1:6] ##in proportions
-a[1:5,1:7] ##low obj_val food
-colSums(b[,2:10])+ (a[1,2:10])  ##final nutrient intake in grams
 rda_sub[n,]  ##rda values in grams
-l values in grams
-b[1,2:10]+ colSums(a[,2:10])
+rda_prop[n,4] ##physcial activity
+consumed[,1:6] ##in proportions
+x[1:5,] ##bottom 5 objective values
+a[1:5,1:7] ##corresponding bottom 5 food items' nutrient portfolio
+colSums(b[,2:10])+ (a[1,2:10])  ##final nutrient intake in grams
+
