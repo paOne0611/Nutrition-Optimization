@@ -76,7 +76,8 @@ indb$category=apply(mat, 1, function(row) {
 # View the distribution of the newly created categories
 table(indb$category)
 
-save(indb,recipes, file = "C:\\Users\\paone\\OneDrive\\Desktop\\G22_DA\\clean.RData")
+location= "" ##add the location on your device with the file name as .RData
+save(indb,recipes, file = location)
 
 
 
