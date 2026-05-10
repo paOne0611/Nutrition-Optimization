@@ -1,0 +1,715 @@
+---
+title: "Indian Food Nutrient Analysis"
+institute: "Indian Statistical Institute"
+author: "Gagan Shehra,  Rishikesh Utthari, MD Danish, Shinajan Goswami, Omhari Indoria, Pawan Kumar"
+format: 
+  revealjs:
+    theme: simple
+    embed-resources: true
+---
+## Dataset & Cleaning
+
+```{=html}
+<style>
+.reveal h2 {
+  font-family: sans-serif;
+  font-weight: bold;
+  text-transform: uppercase; 
+}
+
+.reveal .slides {
+  font-family: sans-serif; 
+  font-size: 0.7em;
+}
+</style>
+```
+
+```{r setup, include=FALSE}
+library(lattice)
+library(ggplot2)
+library(tidyr)
+library(moments)
+# Ensure the path is correct
+load("clean.RData")
+```
+
+
+::::: {.columns}
+
+::: {.column width="50%"}
+
+-   Nutrition dataset: It lists amounts of nearly 40 nutrients and minerals (in different units) for 1014 dishes (mostly Indian)
+-   Data present in two forms:
+  1. Per 100g 
+  2. Unit serving
+-   Recipes dataset: 13 variables; 1218 unique ingredients for 1014 food items
+-   Sourced from official journals (ICMR, CoFID) and blog posts
+-   Handled data cleaning cases like uppercase and lowercase mismatches
+
+:::
+
+::: {.column width="50%"}
+
+- Created multiple regex patterns (regular expressions) to create the categories,
+```{r, echo= FALSE, quote= FALSE}
+cat("1. food_category")
+table(indb$category)
+cat("\n2. non_veg")
+table(indb$non_veg)
+```
+using `grepl()` (in base package; handles missing values)
+
+- Both of the categories are exclusive and exhaustive
+
+:::
+:::::
+
+## Ingridients
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+x = table(recipes$food_name_org)
+x= table(recipes$food_name_org)
+barchart(sort(x[x>100]),
+         xlab= "frequencies",
+         main= "Major Ingridients in Indian Cuisines")
+```
+
+::: {style="font-size: 0.4em;"}
+Items like:
+
+-  Ghee, butter (113)
+- Milk, whole, cow (119)
+- Garam masala (187)
+
+are among the dominant ingredients (with frequency > 100) in the 1014 items. Whereas, non-veg items e.g., chicken, meat etc. are not among them. Only egg is a frequent non-veg ingredient in the Indian cuisines. 
+:::
+
+##  
+**Is there a significant correlation between carbohydrate content `carb_g` and fat content `fat_g` across prepared Indian dishes (excluding pure condiments)?**
+
+```{r}
+indb1 <- subset(indb, category %in% c("curry", "bread", "main"))
+plot(indb1$unit_serving_carb_g, indb1$unit_serving_fat_g, xlab= "Carbohydrate (in grams)", ylab = "Fat (in grams)", main = "Scatter Plot between Carbohydrates and Fats")
+fit = lm(indb1$unit_serving_carb_g~ indb1$unit_serving_fat_g)
+abline(fit, col= "red", lty=2)
+x= cor(indb1$unit_serving_carb_g, indb1$unit_serving_fat_g, use= "pairwise.complete.obs")
+#boxplot(indb1$energy_kcal, horizontal = TRUE)
+cat("Correlation between carbohydrates and fats (per unit serving) is", x)
+```
+
+As r is weakly positive it confirms that Indian cuisines usually pair large amounts of both starch and oil in a single recipe, leading to higher caloric density.
+
+
+## 
+**In the `Desserts` category, does a 1-gram increase in `freesugar_g` predict a significant decrease in a composite Micronutrient Density Score (using `iron_mg`, `calcium_mg`, `magnesium_mg`)?**
+
+
+::::: {.columns}
+
+::: {.column width="60%"}
+```{r, fig.height= 8.4}
+indb2 <- subset(indb, category == "dessert")
+iron_zs <- scale(indb2$iron_mg)
+calcium_zs <- scale(indb2$calcium_mg)
+magnesium_zs <- scale(indb2$magnesium_mg)
+
+indb2$composite_mineral_score = iron_zs + calcium_zs + magnesium_zs
+
+model <- lm(composite_mineral_score ~ freesugar_g, data = indb2)
+#summary(model)
+
+ggplot(indb2, aes(x = freesugar_g, y = composite_mineral_score)) +
+  geom_point(colour = "steelblue") +
+  geom_smooth(method = "lm", se = TRUE, colour = "red", fill = "grey") +
+  labs(
+    title = "Nutrient Dilution in Indian Desserts",
+    subtitle = paste0("Slope = ", round(coef(model)[2], 4), 
+                      " | p-value = ", round(summary(model)$coefficients[2,4], 4),
+                      " | R² = ", round(summary(model)$r.squared, 4)),
+    x = "Free Sugar (g)",
+    y = "Composite Mineral Score\n(Sum of Z-scores of Fe, Ca, Mg)"
+  ) +
+  theme_minimal(base_size = 12)
+
+```
+:::
+
+::: {.column width="40%"}
+The regression coefficient (slope) is 0.0201 with p value = 0.0644.
+The relationship is NOT statistically significant as, p value = 0.0644 is greater than 0.05.
+For every 1 gram increase in free sugar, the composite mineral score changes by 0.0201 (the regression slope) units.
+$R^2$ = 0.013 means that 1.3 % of the variation in composite mineral score is explained by freesugar content.
+:::
+
+:::::
+
+```{r}
+indb2$residual <- residuals(model)
+indb2$better_dessert <- ifelse(indb2$residual > 0, "Above line (more minerals)", "Below line")
+
+```
+
+
+## 
+**How do the average cholesterol content `cholesterol_mg` and average saturated fat content `sfa_mg` compare between Egg-based desserts and Eggless desserts?**
+
+```{r}
+
+indb3 <- subset(indb2, indb2$non_veg == "non_veg") 
+indb4 <- subset(indb2, indb2$non_veg == "veg")     
+library(lattice)
+
+data <- data.frame(
+  Category = rep(c("Eggless", "Egg"), times = 2),
+  Panel = rep(c("mean_of_unit_serving_cholesterol_mg", "mean_of_unit_serving_sfa_mg"), each = 2),
+  Mean_per_Serving_in_mg = c(mean(indb4$unit_serving_cholesterol_mg, na.rm = TRUE), mean(indb3$unit_serving_cholesterol_mg, na.rm = TRUE), mean(indb4$unit_serving_sfa_mg, na.rm = TRUE), mean(indb3$unit_serving_sfa_mg, na.rm = TRUE))
+)
+
+data1 <- data.frame(
+  Category1 = rep(c("Eggless", "Egg"), times = 1),
+  Panel1 = rep(c("mean_of_unit_serving_cholesterol_mg"), each = 1),
+  Mean_per_Serving_in_mg1 = c(mean(indb4$unit_serving_cholesterol_mg, na.rm = TRUE), mean(indb3$unit_serving_cholesterol_mg, na.rm = TRUE))
+)
+
+data2 <- data.frame(
+  Category2 = rep(c("Eggless", "Egg"), times = 1),
+  Panel2 = rep(c("mean_of_unit_serving_sfa_mg"), each = 2),
+  Mean_per_Serving_in_mg2 = c(mean(indb4$unit_serving_cholesterol_mg, na.rm = TRUE), mean(indb3$unit_serving_cholesterol_mg, na.rm = TRUE), mean(indb4$unit_serving_sfa_mg, na.rm = TRUE), mean(indb3$unit_serving_sfa_mg, na.rm = TRUE))
+)
+```
+::::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+barchart(Mean_per_Serving_in_mg1 ~ Category1 | Panel1, data = data1, ylab = "Mean Cholestrol (mg)")
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+barchart(Mean_per_Serving_in_mg2 ~ Category2 | Panel2, data = data2, ylab = "Mean SFA (mg)")
+```
+:::
+:::::
+
+::: {style ="font-size: 0.5em;"}
+
+```{r}
+SFA_to_Cholesterol_Ratio_for_eggless = mean(indb4$unit_serving_sfa_mg, na.rm = TRUE)/mean(indb4$unit_serving_cholesterol_mg, na.rm = TRUE)
+SFA_to_Cholesterol_Ratio_for_egg = mean(indb3$unit_serving_sfa_mg, na.rm = TRUE)/mean(indb3$unit_serving_cholesterol_mg, na.rm = TRUE)
+```
+
+- Egg‑based desserts (n ≈ 110 items) exhibit a high average cholesterol around 138 mg. Their average SFA content around 9995 mg.
+- Eggless desserts (n ≈ 150 items) show near‑zero cholesterol(around 19 mg). However, their average saturated fat is around 7400 mg. 
+- This reflects the common practice of replacing eggs with butter, or cream in desserts.
+- The SFA‑to‑Cholesterol ratio is-
+  
+  1. 374.74 eggless desserts
+  2. 72.2 egg‑based
+  
+:::
+
+##  
+**What is the skewness of the sodium_mg distribution across all savory items? Does a long right tail indicate that the average sodium content is misleading?**
+```{r}
+indb5<- subset(indb, !(indb$category == "dessert" | indb$category == "drinks"))
+library(moments) #will be using moments to find skewness(mu_3^2/mu_2^3) and kutosis(mu_4/mu_2^2) and excess_kutosis is just kurtosis - 3          
+# mu_i is ith central moment
+skewness_value <- skewness(indb5$unit_serving_sodium_mg, na.rm = TRUE)
+excess_kurtosis_value <- kurtosis(indb5$unit_serving_sodium_mg, na.rm = TRUE)
+library(lattice)
+```
+::::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+hist((indb5$unit_serving_sodium_mg),
+        main = "Distribution of Sodium per Serving (Savory Items)",
+        xlab = "Sodium (mg) per serving",
+        col = "lightblue")
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+hist(log(indb5$unit_serving_sodium_mg),
+        main = "Log Distribution of Sodium per Serving (Savory Items)",
+        xlab = "ln(Sodium (mg) per serving)",
+        col = "lightblue")
+```
+:::
+:::::
+```{r}
+IQR_sodium = IQR(indb5$unit_serving_sodium_mg, na.rm = TRUE)
+#quantile(indb5$unit_serving_sodium_mg, na.rm = TRUE)
+lower_bound = 119.1350 - (1.5*IQR_sodium)
+upper_bound = 447.4761 + (1.5*IQR_sodium)
+
+#sum(indb5$unit_serving_sodium_mg>=upper_bound, na.rm = TRUE) #no. of all upper outliers #we can now print all ouliers as we now know there are total 53 outliers and all are upper ouliers
+#sum(indb5$unit_serving_sodium_mg<=lower_bound, na.rm = TRUE) #no. of all lower outliers
+
+mean_sodium <- mean(indb5$unit_serving_sodium_mg, na.rm = TRUE)
+median_sodium <- median(indb5$unit_serving_sodium_mg, na.rm = TRUE)
+mean_to_median_ratio = mean_sodium/median_sodium
+```
+The sodium content across savory dishes is highly right‑skewed (skewness using moments = 5.8) as seen in mean/median ratio (> 8.5). For sodium per serving in savory items, $median (245.7 mg) < mean (2163.5 mg)$ due to the few outliers. Using IQR rule for outliers, there are 53 (and zero) upper (and lower) outliers out of the 681 items. The outliers include pickles, chutneys, items with chaat masala dressing, and certain papads which are often consumed in small quantities but pack high amount of sodium.
+
+## RDA thresholds for the cuisines
+
+::::: {.columns}
+::: {.column width="50%" style="font-size: 0.7em;"}
+**What proportion of Vegetarian Dishes provide less than 15% of the Daily Calcium Requirement (i.e., < 150 mg per serving)?**
+
+```{r}
+indb6 <- subset(indb, category %in% c("curry", "bread", "main") & non_veg == "veg")
+
+below_threshold <- sum(indb6$unit_serving_calcium_mg < 150, na.rm = TRUE)
+percentage <- round(below_threshold / nrow(indb6) * 100, 1)
+
+cat("Vegetarian main dishes with <150mg calcium:", below_threshold, "out of", nrow(indb6), "\n")
+cat("Proportion:", percentage, "%\n")
+
+cat("\nTop 10 vegetarian dishes by calcium:\n")
+top_10_calcium <- head(indb6[order(-indb6$unit_serving_calcium_mg), 
+                              c("food_name", "unit_serving_calcium_mg")], 10)
+print(top_10_calcium)
+```
+Odds of a veg staple food having calcium < 150 mg (15% of RDA) per serving = 3.48. Most of the items are calcium deficient. Paneer and leafy greens are the exceptions in calcium levels.
+:::
+
+::: {.column width="50%" style="font-size: 0.8em;"}
+**Which specific dishes provide >20% of the Adequate Intake for Biotin (vitb7_ug > 6 μg) per serving?**
+
+```{r}
+biotin_threshold <- 6
+biotin_rich <- indb[!is.na(indb$unit_serving_vitb7_ug) & 
+                     indb$unit_serving_vitb7_ug >= biotin_threshold, ]
+biotin_rich_ranked <- biotin_rich[order(-biotin_rich$unit_serving_vitb7_ug), ]
+
+percentage <- round(nrow(biotin_rich) / nrow(indb) * 100, 1)
+cat(percentage, "% of dishes provide ≥6 mcg biotin per serving\n\n")
+
+cat("Top 10 biotin-rich dishes:\n")
+print(head(biotin_rich_ranked[, c("food_name", "unit_serving_vitb7_ug")], 10))
+```
+Odds of a dish having biotin >= 6 µg (per serving) is 0.27. Top sources include eggs and nuts as ingredients e.g., egg halwa, peanut chutney, scotch egg etc.
+:::
+:::::
+
+
+
+
+## 
+::: {style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 5rem;"}
+FATS PROFILE 
+OF FOOD ITEMS
+:::
+##
+::::: {columns}
+
+::: {.column width="50%" style="font-size: 0.54em;"}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+c=rainbow(length(levels(as.factor(indb$non_veg))))
+
+cloud(mufa_mg ~ sfa_mg * pufa_mg, 
+      pch = c(14, 16), 
+      col = c,
+      data = indb, 
+      groups = indb$non_veg, 
+      cex = 1.5,
+      key = list(space = "right",
+                 text = list(levels(as.factor(indb$non_veg))),
+                 points = list(pch = c(14, 16),
+                               col = c)))
+```
+
+```{=html}
+<ul>
+<li> Most of the non-veg food is relatively lower in mufa and pufa content. </li>
+<li> mufa and pufa content increase together; represents plant-based oils (like sunflower or soybean oil) </li>
+<li> sfa and mufa follow the similar relation; common in animal-based fats (like ghee, butter or cow's milk) </li>
+<li> Veg food has many outliers (belonging to curry and salads); non-veg food follows tighter lines </li>
+<li> Drinks have the lowest fats (of all three types).</li>
+```
+
+
+```{r}
+# Summary statistics for fats
+y=indb[, c(2,11,12,13,84)]
+###wrt to the food category, provide summary stats for the fats content
+x1 = split(y, list(y$category))
+s= lapply(x1, function(df){
+  summary(df$sfa_mg, na.rm = TRUE)
+})
+m= lapply(x1, function(df){
+  summary(df$mufa_mg, na.rm = TRUE)
+})
+p= lapply(x1, function(df){
+  summary(df$pufa_mg, na.rm = TRUE)
+})
+s=do.call(rbind, s)
+p= do.call(rbind, p)
+m= do.call(rbind, m)
+
+fats_sum= cbind(item= rownames(s), q2.sfa= s[,3], q2.mufa= m[,3], q2.pufa= p[,3], max.sfa= s[,6], max.mufa= m[,6], max.pufa= p[,6])
+fats_sum= fats_sum|> as.data.frame()
+rownames(fats_sum)= NULL
+fats_sum[, 2:7]= apply(fats_sum[, 2:7], 1, function(row) as.numeric(row))
+
+```
+
+**FATS RICH**
+
+::: {style="font-size: 1.5em;"}
+:::: {columns}
+::: {.column width="50%"}
+
+```{r, echo=FALSE}
+cat("1. SFA (bad for health)", head(fats_sum[order(-fats_sum$q2.sfa), 1], 3), sep = "\n")
+
+cat("2. PUFA (good for health)", head(fats_sum[order(-fats_sum$q2.pufa), 1], 3), sep = "\n")
+```
+:::
+
+::: {.column width="50%"}
+```{r, echo=FALSE}
+cat("3. MUFA (good for health)", head(fats_sum[order(-fats_sum$q2.mufa), 1], 3), sep = "\n")
+```
+:::
+
+::::
+:::
+
+:::
+
+::: {.column width="50%"}
+```{r, echo=FALSE, fig.height= 13, out.width= "110%"}
+cloud(mufa_mg ~ sfa_mg * pufa_mg| category, 
+      pch = c(14, 16),
+      data = indb, 
+      groups = indb$non_veg, 
+      cex = 2.5,
+      par.settings = list(superpose.symbol = list(pch = c(14, 16))),
+      auto.key = list(space = "bottom", points = TRUE, columns = 2, cex=2),
+      layout= c(2,4),
+      xlab = "", ylab = "", zlab = "")
+```
+:::
+
+:::::
+
+
+## Boxplots
+::::: {.columns}
+
+::: {.column width="50%"}
+**Sodium concentration in different food categories**
+```{r, fig.height= 7}
+
+bwplot(~log(sodium_mg)|category, data = indb,
+       layout=c(1,7),
+       main= "log distribution of sodium_mg per 100 g")
+
+x=with(indb, split(sodium_mg, category))
+result=sapply(x, fivenum)
+rownames(result) = c("Min", "Q1", "Median", "Q3", "Max")
+result=as.data.frame(result)
+result=t(result)
+```
+*Salads* are the third highest contributor of sodium in Indian diet. This cooling agent is a significant source of hidden sodium.
+:::
+
+::: {.column width="50%"}
+Q. **Does raw or cooked food retain vitamin C?**
+```{r }
+# Q17 Vitamin C Retention
+temp=indb[indb$category=="others",c(2,41,83)]
+pattern_raw="pickle|chutney|masala|preserves"
+pattern_cooked="sauce|soup|ketchup"
+
+logi_raw= grepl(pattern_raw, temp$food_name, ignore.case = TRUE)
+
+temp$raw="raw"
+temp[!logi_raw,]$raw="cooked"
+
+bwplot(~vitc_mg|raw, data=temp,
+       layout=c(1,2),
+       xlab="Vitamin C in mg")
+par(mfrow=c(1,1)) 
+options(scipen = 0)  
+```
+Vitamin C is heat-labile. *Raw* add-ons (pickle, chutney, preserves etc.) are beyond taste— they're a crucial Vitamin C supplement over *cooked* supplements (like, sauce, soup and ketchup).
+:::
+
+:::::
+
+
+## A Vegetarian Paradox
+
+::: {style="font-size: 0.62em;"}
+::::: {.columns}
+
+:::{.column width="60%"}
+```{r, fig.fullwidth=TRUE, fig.height= 9}
+# Q8 Folate (Vit B9) and Iron, Vit C
+#indb$folate_ug=NULL
+temp=indb[indb$non_veg== "veg", c(2,20,40,41)]
+
+temp$vitb9_ug= temp$vitb9_ug*(1e-3)
+names(temp)[3]="vitb9_mg"
+
+y=with(temp, vitb9_mg ==0)
+temp[y, "vitb9_mg"]=NA
+
+y=with(temp, iron_mg ==0)
+temp[y, "iron_mg"]=NA
+
+y=with(temp, vitc_mg ==0)
+temp[y, "vitc_mg"]=NA
+
+par(mfcol=c(1,2))
+
+options(scipen = 999)
+plot(log(temp$vitb9_mg) ~ log(temp$iron_mg),
+     ylab="log of mg of vit B9 per 100g",
+     xlab="log of mg of iron per 100g",
+     pch = 16,
+     col = "#FF000033")
+fit=lm(log(temp$vitb9_mg) ~ log(temp$iron_mg))
+abline(fit, col="green", lwd=3)
+
+plot(log(temp$vitc_mg) ~ log(temp$iron_mg),
+     ylab="log of mg of vit C per 100g",
+     xlab="log of mg of iron per 100g",
+     pch = 16,
+     col = "#FF000033")
+fit=lm(log(temp$vitc_mg) ~ log(temp$iron_mg))
+abline(fit, col="green", lwd=3)
+
+par(mfrow=c(1,1))  
+
+b9_i= cor(temp$vitb9_mg, temp$iron_mg, use = "pairwise.complete.obs")
+cat("correlation b/w vitamin B9 & iron: ", b9_i)
+c_i= cor(temp$vitc_mg, temp$iron_mg, use = "pairwise.complete.obs")
+cat("correlation b/w vitamin C & iron: ", c_i)
+```
+:::
+
+
+
+:::{.column width="40%" }
+While vegetarian meals are adequate in iron and folate (B9) on paper, the heat-labile Vitamin C needed to absorb that iron is largely absent. 
+
+Q. **Is there a positive Spearman correlation between fat_g and carotenoids_ug?**
+```{r, warning=FALSE, message=FALSE}
+#Q13 Carotenoid-Fat Story
+total_fat_mg=with(indb, mufa_mg + pufa_mg + sfa_mg)
+temp=indb[,c(2,42,83,84)]
+temp=cbind(temp, total_fat_mg)
+
+y=with(temp, carotenoids_ug==0)
+temp[y,2]=NA
+
+y=with(temp, total_fat_mg==0)
+temp[y,4]=NA
+
+temp$carotenoids_ug=temp$carotenoids_ug*(1e-3)
+names(temp)[2]="carotenoids_mg"
+
+ls=split(temp, list(temp$non_veg, temp$category))
+
+results <- lapply(ls, function(df) {
+  cor(df$carotenoids_mg, df$total_fat_mg, use = "complete.obs")
+})
+results=as.data.frame(results)
+
+results= results |>
+  pivot_longer(cols = colnames(results),
+               names_to = "type",
+               values_to = "cor_car_fat")
+```
+
+```{r,echo=TRUE, warning=FALSE, message=FALSE}
+print(head(results[order(-results$cor_car_fat),],3))
+```
+Carotenoids are fat soluble photosynthetic pigments (found in carrots, pumpkin etc.). Veg curry and veg drinks naturally provide enough fats needed for its absorption; but they are weakly correlated. The overall carotenoids absorption in Indian diet is not very good.
+:::
+:::::
+:::
+
+
+## More Questions
+::::: {.columns}
+::: {.column width="50%" style="font-size: 0.7em;"}
+**Do high-fiber foods `fibre_g` in the dataset show a weaker correlation with `zinc_mg` and `iron_mg` compared to their correlation with `magnesium_mg` and `calcium_mg`?**
+
+```{r}
+# Question 2
+fz= cor.test(indb1$fibre_g, indb1$zinc_mg, method = "spearman")
+fm= cor.test(indb1$fibre_g, indb1$magnesium_mg, method = "spearman")
+fi= cor.test(indb1$fibre_g, indb1$iron_mg, method = "spearman")
+fc= cor.test(indb1$fibre_g, indb1$calcium_mg, method = "spearman")
+# Create data frame
+df <- data.frame(
+   Nutrients = c("zinc_mg", "iron_mg", "magnesium_mg", "calcium_mg"),
+  fibre_mg = c( fz$estimate, fi$estimate, fm$estimate, fc$estimate)
+)
+print(df)
+```
+
+The strong correlation between- 
+
+1.  fiber and magnesium
+2.  fiber and zinc
+3.  fiber and iron
+
+comes from the presence of whole grains and lentils, as plant-based ingredients naturally package high dietary fiber with magnesium, iron and zinc.
+The fiber-calcium correlation drops significantly because the dominant sources of calcium i.e., milk, yogurt, and *paneer*, contain negligible fiber.
+:::
+::: {.column width="50%" style="font-size: 0.62em;"}
+
+
+**What proportion of foods in the entire database contain zero detectable Vitamin A?**
+
+```{r}
+vita_zero <- sum(indb$vita_ug == 0, na.rm = TRUE)
+vita_total <- sum(!is.na(indb$vita_ug))
+vita_percentage <- round(vita_zero / vita_total * 100, 1)
+
+cat("  Foods with zero Vitamin A:", vita_zero, "out of", vita_total, "\n")
+cat("  Proportion:", vita_percentage, "%\n\n")
+#interpretation of Q6
+```
+Odds of a dish having Vitamin A is 0.57. It is because this fat-soluble vitamin is mostly destroyed during cooking.
+
+**Which food category provides the highest calcium per 100 kcal?**
+
+`Calcium Density` = $(calcium / energy) * 100$
+```{r}
+indb8 <- subset(indb, !(indb$category == "others")) 
+indb8$calcium_density <- (indb8$calcium_mg * 0.15 * 1e-6 / indb8$energy_kcal) * 100
+indb8 <- indb8[!is.na(indb8$calcium_density) & indb8$energy_kcal > 0, ] 
+indb_cal_den_filtered <- indb8[indb8$energy_kcal >= 30, ]
+indb_cal_den_ranked <- indb_cal_den_filtered[order(-indb_cal_den_filtered$calcium_density), ]
+top_10 <- head(indb_cal_den_ranked[, c("food_name", "calcium_density")], 10)
+print(top_10)
+# Pav bhaji masala is a mistake as grepl used `pav` from regex to classify it in breads
+# similar case with curd dressing being in salads due to regex `curd`.
+```
+
+The items with high calcium desnity are *raitas*. *Raitas* have higher alcium density than milk/*paneer* because heat loss takes place during fermentation (of milk to curd).
+
+:::
+:::::
+
+---
+
+## More Questions
+
+::::: {.columns}
+
+::: {.column width= "50%"}
+**Is there a strong positive Pearson correlation between PUFA and vitamin E across all food items?**
+```{r}
+# Q20 Vitamin E and PUFA
+temp=indb[,c(2,28,13)]
+plot(temp$vite_mg~ temp$pufa_mg,
+     xlab= "PUFA (mg)",
+     ylab= "Vitamin E (mg)")
+fit=lm(temp$vite_mg~ temp$pufa_mg)
+abline(fit, col="red", lwd=2)
+x= cor(temp$vite_mg, temp$pufa_mg)
+cat("The correlation is:", x)
+```
+Vitamin E is a fat-soluble antioxidant that protects PUFA from oxidation. A strong correlation confirms that nature packages them together.
+:::
+
+::: {.column width= "50%" style="font-size: 0.62em;"}
+**Comapre the Protein-to-Energy Ratio of veg and non-veg meals.**
+```{r }
+# Q22 Protein-to-Energy Ratio
+temp=indb[,c(2,83,5,7)]
+x= temp$protein_g*4/temp$energy_kcal
+temp$pe_ratio=x
+bwplot(~pe_ratio|non_veg, data=temp,
+       layout= c(1,2),
+       xlab="protein to energy ratio")
+
+veg_only=temp[temp$non_veg=="veg",]
+veg_only=veg_only[order(-veg_only$pe_ratio),]
+head(veg_only[, c(1,5)], 10)
+```
+Vegetarian food needs to be served with the above mentioned extra items rich in protein to match the protein efficiency of non-veg meals.
+:::
+
+:::::
+## Which food types are protein rich?
+```{r }
+# Q16 Zinc-to-Copper Ratio in High-Protein Foods
+temp=indb[,c(2,7,26,21,84)]
+
+man.solid=with(indb, indb$category!="drinks" & protein_g>=5.4)
+man.liquid=with(indb, indb$category=="drinks" & protein_g>=2.7)
+woman.solid=with(indb, indb$category!="drinks" & protein_g>=4.6)
+woman.liquid=with(indb, indb$category=="drinks" & protein_g>=2.3)
+###computed using RDA from ICMR and Nutrient Content Claim from FSSAI
+
+temp_man= temp[man.liquid | man.solid, ]
+temp_woman= temp[woman.liquid | woman.solid, ]
+temp_man$zc_ratio= with(temp_man, zinc_mg/copper_mg)
+temp_woman$zc_ratio= with(temp_woman, zinc_mg/copper_mg)
+
+pick_row= with(temp_man, zc_ratio>=8 & zc_ratio<=15)
+temp_man=temp_man[pick_row, ]
+
+pick_row= with(temp_woman, zc_ratio>=8 & zc_ratio<=15)
+temp_woman=temp_woman[pick_row, ]
+
+food1=sort(table(temp_woman$category)/table(indb$category))*100
+food_woman=as.data.frame(food1)
+colnames(food_woman)=c("food_type","adult_wm_pc")
+
+food2=sort(table(temp_man$category)/table(indb$category)[-7])*100  ##salads is not present in temp_man
+food_man=as.data.frame(food2)
+colnames(food_man)=c("food_type","adult_m_pc")
+food_man$food_type= as.character(food_man$food_type)
+food_man= rbind(c("salads", 0), food_man)
+food_man$adult_m_pc= as.numeric(food_man$adult_m_pc)
+
+high_pr=cbind(food_man, adult_wm_pc=food_woman$adult_wm_pc)
+#high_pr= high_pr[order(high_pr$adult_wm_pc),]
+
+high_pr_long <- pivot_longer(high_pr, 
+                             cols = c(adult_m_pc, adult_wm_pc),
+                             names_to = "gender",
+                             values_to = "percentage")
+
+
+ggplot(high_pr_long, aes(x= reorder(food_type, percentage), y=percentage, fill=gender))+
+  geom_col(position = "dodge")+
+  labs(title="Protein Content by Food Type and Gender (8<= Zinc:Copper <= 15)",
+       fill="Gender",
+       x="food type",
+       y="percentage composition")+
+  scale_fill_manual(values = c("adult_m_pc" = "steelblue", 
+                               "adult_wm_pc" = "coral"),
+                    labels = c("Adult Male", "Adult Female"))
+View(high_pr)
+```
+::: {style = "font-size: .5em;"}
+Zinc and copper compete for the same binding protein in the gut. Taking too much zinc (without enough protein to help clear it) can cause the body to "trap" copper in the gut, leading to a copper deficiency. Otherwise, zinc deficiency happens.
+Hence, *main, bread and dessert* are safe to eat to ensure `copper-zinc balance` and efficient `protein absorption`. The bar-chart denotes the percentage of *sources of protein* (as defined by FSSAI) by taking into consideration the required percentage (for solids and liquids) of RDA value for men and women separately (published by ICMR, MoHFW, Gov. of India). Due to lower RDA, the bars (in the plot) for women are higher than for men.
+:::
+
+
+## Limitations
+
+1. Misclassification across food categories due to keyword-based classificastion (Regex pattern and grepl()).
+
+2. Fixed serving sizes assumed for all foods which may ignore real world portion variation.
+
+3. Nutrient thresholds derived from adult requirements only.
+
+4. Assumed linear relationships between nutrients.
+
+5. Single‑food analysis ignores meal context and bioavailability.
