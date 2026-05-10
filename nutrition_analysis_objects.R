@@ -1,10 +1,10 @@
 library(readxl)
 
-indb <- read_excel("C:/Users/paone/OneDrive/Desktop/G22_DA/Anuvaad_INDB_2024.11.xlsx")
+indb <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/Anuvaad_INDB_2024.11.csv")
 
 ###extracting food names from the recipes.csv file based on the ingregients instead of searching for keywords from the food name column in the indb df
 #library(readr)
-recipes <- read_xlsx("C:/Users/paone/OneDrive/Desktop/G22_DA/recipes.xlsx")
+recipes <- read.csv("https://raw.githubusercontent.com/paOne0611/Nutrition-Optimization/main/data/recipes.csv")
 #View(recipes)
 
 # 2. Define the regex pattern for non-vegetarian keywords (case-insensitive)
