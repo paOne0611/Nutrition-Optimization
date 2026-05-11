@@ -644,7 +644,13 @@ Vegetarian food needs to be served with the above mentioned extra items rich in 
 
 :::::
 ## Which food types are protein rich?
-```{r }
+
+::: {style = "font-size: .5em;"}
+Zinc and copper compete for the same binding protein in the gut. Taking too much zinc (without enough protein to help clear it) can cause the body to "trap" copper in the gut, leading to a copper deficiency. Otherwise, zinc deficiency happens.
+Hence, *main, bread and dessert* are safe to eat to ensure `copper-zinc balance` and efficient `protein absorption`. The bar-chart denotes the percentage of *sources of protein* (as defined by FSSAI) by taking into consideration the required percentage (for solids and liquids) of RDA value for men and women separately (published by ICMR, MoHFW, Gov. of India). Due to lower RDA, the bars (in the plot) for women are higher than for men.
+:::
+
+```{r, fig.height=5 }
 # Q16 Zinc-to-Copper Ratio in High-Protein Foods
 temp=indb[,c(2,7,26,21,84)]
 
@@ -694,12 +700,27 @@ ggplot(high_pr_long, aes(x= reorder(food_type, percentage), y=percentage, fill=g
   scale_fill_manual(values = c("adult_m_pc" = "steelblue", 
                                "adult_wm_pc" = "coral"),
                     labels = c("Adult Male", "Adult Female"))
-View(high_pr)
+#View(high_pr)
+
+t_q= qt(.975, 6)  ##t distribution's .975th quantile
+m= mean(high_pr$adult_m_pc)
+s= sd(high_pr$adult_m_pc)
+se= s/sqrt(nrow(high_pr))
+lb.m= m- t_q * se
+ub.m= m+ t_q * se
+
+m= mean(high_pr$adult_wm_pc)
+s= sd(high_pr$adult_wm_pc)
+se= s/sqrt(nrow(high_pr))
+lb.f= m- t_q * se
+ub.f= m+ t_q * se
+cat("For adult males, any typical food category contributes around", lb.m, "to", ub.m, "percentage of protein sources. Whereas, it is around", lb.f, "to", ub.f, "percentage with 95% confidence for adult females.")
+
+cv_m= sd(high_pr$adult_m_pc)/mean(high_pr$adult_m_pc)
+cv_wm= sd(high_pr$adult_wm_pc)/mean(high_pr$adult_wm_pc)
+
+cat("Even though women have a higher mean protein percentage than men (", mean(high_pr$adult_wm_pc), '>', mean(high_pr$adult_m_pc), ") ,their CV is lower (", cv_wm, '<', cv_m, "). Thereby, the protein contribution is more balanced across the food types for women." )
 ```
-::: {style = "font-size: .5em;"}
-Zinc and copper compete for the same binding protein in the gut. Taking too much zinc (without enough protein to help clear it) can cause the body to "trap" copper in the gut, leading to a copper deficiency. Otherwise, zinc deficiency happens.
-Hence, *main, bread and dessert* are safe to eat to ensure `copper-zinc balance` and efficient `protein absorption`. The bar-chart denotes the percentage of *sources of protein* (as defined by FSSAI) by taking into consideration the required percentage (for solids and liquids) of RDA value for men and women separately (published by ICMR, MoHFW, Gov. of India). Due to lower RDA, the bars (in the plot) for women are higher than for men.
-:::
 
 
 ## Limitations
@@ -713,3 +734,6 @@ Hence, *main, bread and dessert* are safe to eat to ensure `copper-zinc balance`
 4. Assumed linear relationships between nutrients.
 
 5. Single‑food analysis ignores meal context and bioavailability.
+
+6. According to FSSAI, a liquid source of protein should have atleast 5% of RDA per 100 ml. But the dataset contained amounts either for per 100g or per serving of a food item.
+
