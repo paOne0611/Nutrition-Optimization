@@ -27,7 +27,10 @@ This project focuses on optimizing dietary choices using data analysis and few i
   - pyreader
   - cvxpy
   - pandas
-  - numpy 
+  - numpy
+- RData files (contain the cleaned datasets)
+  - cvx.RData : ...for optimization problems
+  - clean.RData: ...for data analysis
 - qmd file : contains the R code for the data analysis with proper comments
 - others: code for cleaning the datasets and working on them
 
