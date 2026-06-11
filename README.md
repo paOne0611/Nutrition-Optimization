@@ -12,7 +12,6 @@ This project focuses on optimizing dietary choices using data analysis and few i
 
 - Nutritional data analysis  
 - Diet optimization  
-- Machine learning models  
 - Data visualization  
 
 ---
@@ -30,16 +29,16 @@ This project focuses on optimizing dietary choices using data analysis and few i
   - pandas
   - numpy 
 - qmd file : contains the R code for the data analysis with proper comments
-- 
+- others: code for cleaning the datasets and working on them
 
 ---
 
 ## Usage
 
-- Explore data in the `notebooks/` folder  
-- Modify datasets in `data/`  
+- Explore data in the `data/` folder  
+- Modify reports/ presentations in `reports_presentations/`  
 - Update models in `src/`  
-- Run scripts to generate optimized nutrition plans  
+- Run scripts i.e., `unconstrained.R/` and `constrained.py/` to generate optimized nutrition plans  
 
 ---
 
