@@ -1,32 +1,48 @@
 
-## Shannon Entropy ($H$)
-This measures the nutritional diversity or "evenness" of a food item. A higher entropy indicates a more balanced distribution of nutrients, while a lower entropy indicates a food dominated by a single macronutrient (like pure sugar or oil).
-$$H = -\sum_{i=1}^k p_i \log(p_i)$$ 
+# 🥗 Nutrition Optimization
 
-* $k$: The number of nutrient categories (e.g., Protein, Carbs, Fat).
-* $p_i$: The proportion of the $i$-th nutrient (where $\sum p_i = 1$).
-* Interpretation: Entropy is maximized when $p_1 = p_2 = \dots = p_k$.
+This project focuses on optimizing dietary choices using data analysis and few inequality measures. It aims to help users make better nutrition decisions by analyzing food data and generating optimized diet plans.
 
-------------------------------
+---
 
-## Kullback–Leibler Divergence ($D_{KL}$)
-Also known as "Relative Entropy," this measures how much a specific food's nutrient profile ($p$) diverges from a target or "ideal" reference profile ($r$).
-$$D_{KL}(p \parallel r) = \sum_{i=1}^k p_i \log\left(\frac{p_i}{r_i}\right)$$ 
-Alternatively, it can be expanded as:
-$$D_{KL}(p \parallel r) = \sum_i p_i \log(p_i) - \sum_i p_i \log(r_i)$$ 
+## 📂 Project Structure
+---
 
-* $p$: The actual nutrient distribution of the food.
-* $r$: The reference distribution (e.g., RDA guidelines).
-* Interpretation: A value of 0 means the food perfectly matches the ideal diet. Larger values indicate a greater "distance" from the nutritional goal.
+## Features
 
-------------------------------
+- Nutritional data analysis  
+- Diet optimization  
+- Machine learning models  
+- Data visualization  
 
-## Key Mathematical Insights
+---
 
-* The Core Term: Both formulas rely on the $x \log x$ function.
-* Sensitivity: KL Divergence is particularly sensitive to nutrients that are missing in the food ($p_i > 0$) but required in the diet ($r_i > 0$).
+## Tech Stack
 
-------------------------------
+- R libraries
+  - ggplot
+  - lattice
+  - tidyr
+  - moments
+- Python libraries
+  - pyreader
+  - cvxpy
+  - pandas
+  - numpy 
+- qmd file : contains the R code for the data analysis with proper comments
+- 
+
+---
+
+## Usage
+
+- Explore data in the `notebooks/` folder  
+- Modify datasets in `data/`  
+- Update models in `src/`  
+- Run scripts to generate optimized nutrition plans  
+
+---
+
 ### Practical Example
 
 Consider a meal with the following energy distribution:
@@ -39,10 +55,7 @@ This distribution has a certain entropy value representing its nutritional balan
 
 If we modify the meal (for example, by replacing carbohydrates with protein), the entropy changes. Whether this change is desirable depends on the target nutritional profile.
 
-#### Insight  
 
-  Measures like **Kullback–Leibler divergence** quantify how far a meal deviates from an ideal diet.  
-These concepts are fundamentally based on **$x \log(x)$**.
 
 
 ------------------------------
